@@ -1,0 +1,8 @@
+## Title: Automatically Accept Quests
+## Author: Valandil
+## Version: 1.0
+## APIVersion: 100022 100023
+## SavedVariables: AAQ
+## OptionalDependsOn: LibAddonMenu-2.0
+
+AAQ.lua
