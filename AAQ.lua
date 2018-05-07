@@ -1,14 +1,15 @@
+local version = '1.0'
 local chatters = {
-   [1] = "ZO_ChatterOption1",
-   [2] = "ZO_ChatterOption2",
-   [3] = "ZO_ChatterOption3",
-   [4] = "ZO_ChatterOption4",
-   [5] = "ZO_ChatterOption5",
-   [6] = "ZO_ChatterOption6",
-   [7] = "ZO_ChatterOption7",
-   [8] = "ZO_ChatterOption8",
-   [9] = "ZO_ChatterOption9",
-   [10] = "ZO_ChatterOption10"
+   "ZO_ChatterOption1",
+   "ZO_ChatterOption2",
+   "ZO_ChatterOption3",
+   "ZO_ChatterOption4",
+   "ZO_ChatterOption5",
+   "ZO_ChatterOption6",
+   "ZO_ChatterOption7",
+   "ZO_ChatterOption8",
+   "ZO_ChatterOption9",
+   "ZO_ChatterOption10"
 }
 
 local myname = 'AAQ'
@@ -19,21 +20,17 @@ local function accept(name, val)
     SelectChatterOption(1)
 end
 
-local function stop_accepting(name)
-    saved.quests[name] =  false
-end
-
 local function offered_handler()
     local name = GetUnitName("interact")
     if saved.quests[name] then
-        AcceptOfferedQuest()
+	AcceptOfferedQuest()
     end
 end
 
 local function completed_handler()
     local name = GetUnitName("interact")
     if saved.quests[name] then
-        CompleteQuest()
+	CompleteQuest()
     end
 end
 
@@ -42,29 +39,29 @@ local function chatter_handler(step, n)
     local text
     local func
     if n > 1 or name:lower():find(' writ') ~= nil  then
-        return
+	return
     end
     if n == 0 then
-        if not saved.quests[name] then
-            return
-        end
-        text = "|cff0000[Stop accepting this quest automatically]|r"
-        func = function() accept(name, false) end
+	if not saved.quests[name] then
+	    return
+	end
+	text = "|cff0000[Stop accepting this quest automatically]|r"
+	func = function() accept(name, false) end
     elseif saved.quests[name] then
-        SelectChatterOption(1)
-        return
+	SelectChatterOption(1)
+	return
     else
-        local _, otype = GetChatterOption(1)
-        if otype ~= CHATTER_START_NEW_QUEST_BESTOWAL then
-            return
-        end
-        text = "|c00ff00[Accept this quest automatically from now on]|r"
-        func = function() accept(name, true) end
+	local _, otype = GetChatterOption(1)
+	if otype ~= CHATTER_START_NEW_QUEST_BESTOWAL then
+	    return
+	end
+	text = "|c00ff00[Accept this quest automatically from now on]|r"
+	func = function() accept(name, true) end
     end
     
     local option = _G[chatters[n + 2]]
     if option == nil then
-        return
+	return
     end
     local iconc = option:GetChild()
     local iconcc = iconc:GetChild()
@@ -78,10 +75,10 @@ end
 
 local function init(_, name)
     if name ~= myname then
-        return
+	return
     end
     EVENT_MANAGER:UnregisterForEvent(name, EVENT_ADD_ON_LOADED)
-    saved = ZO_SavedVars:NewAccountWide(myname, 1, nil, {quests = {}})
+    saved = ZO_SavedVars:NewAccountWide(name, 1, nil, {quests = {}})
 
     ZO_InteractWindowPlayerAreaOptions:RegisterForEvent(EVENT_CONFIRM_INTERACT, function() d("CONFIRM_INTERACT") end)
     ZO_InteractWindowPlayerAreaOptions:RegisterForEvent(EVENT_CHATTER_BEGIN, chatter_handler)

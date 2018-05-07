@@ -1,0 +1,18 @@
+#!/bin/sh -e
+here=$(pwd)
+A=$(basename "$here")
+mkdir /tmp/$$
+ln -s "$here" /tmp/$$/$A
+cd /tmp/$$
+files=$({ echo "$A/$A.txt"; sed -nr -e '/^( *$|#|;)/d' -e "s%^%$A/%p" $A/$A.txt; } | sort)
+if [ -n "$1" ]; then
+    ver=$1
+else
+    ver=$(/bin/sed -nre "s/^[local      ]*version[      ]*=[    ]*['\"](.*)['\"]/\1/p" "$A/$A.lua")
+fi
+rm -f /tmp/$A-$ver.zip
+zip /tmp/$A-$ver.zip $A $files
+echo "
+created /tmp/$A-$ver.zip"
+cd /tmp
+exec /bin/rm -rf /tmp/$$
