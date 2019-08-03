@@ -1,4 +1,4 @@
-local version = '1.0'
+local version = '1.4'
 local chatters = {
    "ZO_ChatterOption1",
    "ZO_ChatterOption2",
@@ -30,12 +30,14 @@ end
 local function completed_handler()
     local name = GetUnitName("interact")
     if saved.quests[name] then
+        d("automatically completing " .. name)
 	CompleteQuest()
     end
 end
 
 local function chatter_handler(step, n)
     local name = GetUnitName("interact")
+    -- d("CHATTER_HANDLER " .. tostring(step) .. ' ' .. tostring(n) .. ' ' .. name)
     local text
     local func
     if n > 1 or name:lower():find(' writ') ~= nil  then
@@ -80,9 +82,9 @@ local function init(_, name)
     EVENT_MANAGER:UnregisterForEvent(name, EVENT_ADD_ON_LOADED)
     saved = ZO_SavedVars:NewAccountWide(name, 1, nil, {quests = {}})
 
-    ZO_InteractWindowPlayerAreaOptions:RegisterForEvent(EVENT_CONFIRM_INTERACT, function() d("CONFIRM_INTERACT") end)
+    ZO_InteractWindowPlayerAreaOptions:RegisterForEvent(EVENT_CONFIRM_INTERACT, function() --[[ d("CONFIRM_INTERACT") --]] end)
     ZO_InteractWindowPlayerAreaOptions:RegisterForEvent(EVENT_CHATTER_BEGIN, chatter_handler)
-    ZO_InteractWindowPlayerAreaOptions:RegisterForEvent(EVENT_CONVERSATION_UPDATED, function(x, y) d("CONVERSATION_UPDATED") end)
+    ZO_InteractWindowPlayerAreaOptions:RegisterForEvent(EVENT_CONVERSATION_UPDATED, function(x, y) --[[ d("CONVERSATION_UPDATED") --]] end)
     ZO_InteractWindowPlayerAreaOptions:RegisterForEvent(EVENT_QUEST_COMPLETE_DIALOG, completed_handler)
     ZO_InteractWindowPlayerAreaOptions:RegisterForEvent(EVENT_QUEST_OFFERED, offered_handler)
 end
