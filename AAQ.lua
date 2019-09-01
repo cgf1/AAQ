@@ -71,6 +71,7 @@ local function chatter(step, n)
     -- d("CHATTER_HANDLER " .. tostring(step) .. ' ' .. tostring(n) .. ' ' .. name)
     local text
     local func
+    giver = nil
     if n > 1 or name:lower():find(' writ') ~= nil or (not saved.nonrepeatable and seen[name] == false) then
 	return
     end
