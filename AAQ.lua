@@ -20,12 +20,17 @@ local SLASH_COMMANDS = SLASH_COMMANDS
 local seen
 
 local giver
+local mitem
+
 local function accept(name, val)
-    if not val then
+    if val then
+	LD:ShowDialog("AAQ", "AutoIt")
+    else
 	SelectChatterOption(1)
 	saved.quests[name] = nil
-    else
-	LD:ShowDialog("AAQ", "AutoIt")
+    end
+    if mitem.AAQ and mitem.AAQ[0] then
+	mitem.AAQ[0](self)
     end
 end
 
@@ -66,13 +71,14 @@ local function completed()
     end
 end
 
-local function chatter(step, n)
+local function chatbeg(step, n)
     local name = GetUnitName("interact")
     -- d("CHATTER_HANDLER " .. tostring(step) .. ' ' .. tostring(n) .. ' ' .. name)
     local text
     local func
     giver = nil
-    if n > 1 or name:lower():find(' writ') ~= nil or (not saved.nonrepeatable and seen[name] == false) then
+    local option = _G[chatters[n + 2]]
+    if option == nil or (n > 1 or name:lower():find(' writ') ~= nil or (not saved.nonrepeatable and seen[name] == false)) then
 	return
     end
     if n == 0 and saved.quests[name] then
@@ -92,18 +98,26 @@ local function chatter(step, n)
 	giver = name
     end
     
-    local option = _G[chatters[n + 2]]
-    if option == nil then
-	return
-    end
     local iconc = option:GetChild()
     local iconcc = iconc:GetChild()
 
     option:SetText(text)
     option:SetMouseEnabled(true)
+    option.AAQ = {option:GetHandler("OnMouseDown"), option:IsMouseEnabled()}
     option:SetHandler("OnMouseDown", func)
     option:SetHidden(false)
+    mitem = option
     iconc:SetHidden(true)
+end
+
+local function chatend(step, n)
+    if mitem then
+	local md, me = unpack(mitem.AAQ)
+	mitem.AAQ = nil
+	mitem:SetHandler("OnMouseDown", md)
+	mitem:SetMouseEnabled(me)
+	mitem = nil
+    end
 end
 
 local function addmenu(x, y, z)
@@ -199,10 +213,11 @@ local function init(_, name)
     end
     saved = ZO_SavedVars:NewAccountWide(name, 1, nil, {nonrepeatable = false, quests = {}, repeatable = {}})
     seen = saved.repeatable
-    LD:RegisterDialog("AAQ", "AutoIt", "Automatically accept this quest from now on?", "Are you sure?", affirmative, negatory)
+    LD:RegisterDialog("AAQ", "AutoIt", "AAQ(v" .. version .. ")\nAutomatically accept this quest from now on?", "Are you sure?", affirmative, negatory)
 
     ZO_InteractWindowPlayerAreaOptions:RegisterForEvent(EVENT_CONFIRM_INTERACT, function() --[[ d("CONFIRM_INTERACT") --]] end)
-    ZO_InteractWindowPlayerAreaOptions:RegisterForEvent(EVENT_CHATTER_BEGIN, chatter)
+    ZO_InteractWindowPlayerAreaOptions:RegisterForEvent(EVENT_CHATTER_BEGIN, chatbeg)
+    ZO_InteractWindowPlayerAreaOptions:RegisterForEvent(EVENT_CHATTER_END, chatend)
     ZO_InteractWindowPlayerAreaOptions:RegisterForEvent(EVENT_CONVERSATION_UPDATED, function(x, y) --[[ d("CONVERSATION_UPDATED") --]] end)
     ZO_InteractWindowPlayerAreaOptions:RegisterForEvent(EVENT_QUEST_COMPLETE_DIALOG, completed)
     ZO_InteractWindowPlayerAreaOptions:RegisterForEvent(EVENT_QUEST_OFFERED, offered)
