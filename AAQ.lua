@@ -1,5 +1,5 @@
 local LD = LibDialog
-local version = '1.6'
+local version = '1.7'
 local chatters = {
    "ZO_ChatterOption1",
    "ZO_ChatterOption2",
