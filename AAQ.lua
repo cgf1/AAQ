@@ -1,5 +1,5 @@
 local LD = LibDialog
-local version = '1.8'
+local version = '1.9'
 local chatters = {
    "ZO_ChatterOption1",
    "ZO_ChatterOption2",
@@ -20,109 +20,56 @@ local SLASH_COMMANDS = SLASH_COMMANDS
 local seen
 
 local giver
-local mitem
+local curqname
 
-local function accept(name, val)
-    if val then
-	LD:ShowDialog("AAQ", "AutoIt")
-    else
-	SelectChatterOption(1)
-	saved.quests[name] = nil
-    end
-    if mitem.AAQ and mitem.AAQ[0] then
-	mitem.AAQ[0](self)
-    end
-end
+local title = "Automatically Accept Quests (v" .. version .. ")"
 
-local function quest_added(_, n, name)
-    if giver then
-	local repeatable = seen[giver]
-	if repeatable == nil then
-	    repeatable =  GetJournalQuestRepeatType(n)
-	    seen[giver] = repeatable ~= QUEST_REPEAT_NOT_REPEATABLE
-	end
-	if repeatable or saved.nonrepeatable then
-	    saved.quests[giver] = name
-	end
-	giver = nil
+local function quest_added(_, n, qname)
+    local repeatable =	GetJournalQuestRepeatType(n) ~= QUEST_REPEAT_NOT_REPEATABLE
+    if giver and not saved.quests[giver] and not saved.quests['-' .. giver] and (repeatable or saved.nonrepeatable) then
+	curqname = qname
+	ZO_Dialogs_ShowDialog("AAQ", {}, {titleParams = {title}, mainTextParams = {giver}})
     end
 end
 
 local function affirmative()
-    saved.quests[giver] = true -- for now
-    SelectChatterOption(1)
+    saved.quests[giver] = curqname
+    giver = nil
+    curqname = nil
+end
+
+local function nochoice()
+    giver = nil
+    curqname = nil
 end
 
 local function negatory()
+    saved.quests['-' .. giver] = curqname
+    giver = nil
+    curqname = nil
 end
 
 local function offered()
-    local name = GetUnitName("interact")
-    if saved.quests[name] then
+    local issuer = GetUnitName("interact")
+    if saved.quests[issuer] then
 	AcceptOfferedQuest()
     end
 end
 
 local function completed()
-    local name = GetUnitName("interact")
-    if saved.quests[name] then
-	d("automatically completing " .. name)
+    local issuer = GetUnitName("interact")
+    if saved.quests[issuer] then
+	df("automatically completing %s", saved.quests[issuer])
 	CompleteQuest()
     end
 end
 
 local function chatbeg(step, n)
-    local name = GetUnitName("interact")
-    -- d("CHATTER_HANDLER " .. tostring(step) .. ' ' .. tostring(n) .. ' ' .. name)
-    local text
-    local func
-    giver = nil
-    local option = _G[chatters[n + 2]]
-    if option == nil or (n > 1 or name:lower():find(' writ') ~= nil or (not saved.nonrepeatable and seen[name] == false)) then
-	return
-    end
-    if n == 0 and saved.quests[name] then
-	text = "|cff0000Stop accepting this quest automatically|r"
-	func = function() accept(name, false) end
-    elseif saved.quests[name] then
-	giver = name
+    giver = GetUnitName("interact")
+    if saved.quests[giver] then
 	SelectChatterOption(1)
 	return
-    else
-	local _, otype = GetChatterOption(1)
-	if otype ~= CHATTER_START_NEW_QUEST_BESTOWAL then
-	    return
-	end
-	text = "|c00ff00Accept this quest automatically from now on|r"
-	func = function() accept(name, true) end
-	giver = name
     end
-    
-    local iconc = option:GetChild()
-    local iconcc = iconc:GetChild()
-
-    option:SetText(text)
-    option:SetMouseEnabled(true)
-    option.AAQ = {option:GetHandler("OnMouseDown"), option:IsMouseEnabled()}
-    option:SetHandler("OnMouseDown", func)
-    option:SetHidden(false)
-    mitem = option
-    iconc:SetHidden(true)
-end
-
-local function chatend(step, n)
-    if mitem then
-	local md, me = unpack(mitem.AAQ)
-	mitem.AAQ = nil
-	mitem:SetHandler("OnMouseDown", md)
-	mitem:SetMouseEnabled(me)
-	mitem = nil
-    end
-end
-
-local function addmenu(x, y, z)
-    d("X " .. tostring(x) .. ' Y ' .. tostring(y) .. ' Z ' .. tostring(z))
-    AddMenuItem("Hello", function () d("HELLO!") end)
 end
 
 local function tracked(name)
@@ -139,10 +86,10 @@ local function journal_hook(label, button, upInside)
     orig_ZO_QuestJournalNavigationEntry_OnMouseUp(label, button, upInside)
     local ix = label.node.data.questIndex
     if ix and button == MOUSE_BUTTON_INDEX_RIGHT and upInside then
-	local name = tracked(GetJournalQuestName(ix))
-	if name then
-	    AddCustomMenuItem("Stop accepting automatically", function()
-		saved.quests[name] = nil
+	local issuer = tracked(GetJournalQuestName(ix))
+	if issuer then
+	    AddCustomMenuItem("Reset automatic quest acceptance", function()
+		saved.quests[issuer] = nil
 	    end)
 	    ShowMenu(label)
 	end
@@ -213,14 +160,24 @@ local function init(_, name)
     end
     saved = ZO_SavedVars:NewAccountWide(name, 1, nil, {nonrepeatable = false, quests = {}, repeatable = {}})
     seen = saved.repeatable
-    LD:RegisterDialog("AAQ", "AutoIt", "AAQ(v" .. version .. ")\nAutomatically accept this quest from now on?", "Are you sure?", affirmative, negatory)
+    -- LD:RegisterDialog("AAQ", "AutoIt", "Automatically Accept Quests (v" .. version .. ")", body, affirmative, negatory)
+    local confirm = {
+	title = { text = "Automatically Accept Quests"},
+	mainText = {text = "Automatically accept/complete quests from <<1>> from now on?", align = TEXT_ALIGN_CENTER},
+	warning = {text = "Hit ESC/ALT will ask about this quest provider next time", align = TEXT_ALIGN_CENTER},
+	noChoiceCallback = nochoice,
+	buttons = {
+	    [1] = {text = SI_YES, callback = affirmative},
+	    [2] = {text = SI_NO, callback = affirmative},
+	},
+    }
+    ZO_Dialogs_RegisterCustomDialog("AAQ", confirm)
 
-    ZO_InteractWindowPlayerAreaOptions:RegisterForEvent(EVENT_CONFIRM_INTERACT, function() --[[ d("CONFIRM_INTERACT") --]] end)
-    ZO_InteractWindowPlayerAreaOptions:RegisterForEvent(EVENT_CHATTER_BEGIN, chatbeg)
-    ZO_InteractWindowPlayerAreaOptions:RegisterForEvent(EVENT_CHATTER_END, chatend)
-    ZO_InteractWindowPlayerAreaOptions:RegisterForEvent(EVENT_CONVERSATION_UPDATED, function(x, y) --[[ d("CONVERSATION_UPDATED") --]] end)
-    ZO_InteractWindowPlayerAreaOptions:RegisterForEvent(EVENT_QUEST_COMPLETE_DIALOG, completed)
-    ZO_InteractWindowPlayerAreaOptions:RegisterForEvent(EVENT_QUEST_OFFERED, offered)
+    EVENT_MANAGER:RegisterForEvent(name, EVENT_CONFIRM_INTERACT, function() --[[ d("CONFIRM_INTERACT") --]] end)
+    EVENT_MANAGER:RegisterForEvent(name, EVENT_CHATTER_BEGIN, chatbeg)
+    EVENT_MANAGER:RegisterForEvent(name, EVENT_CONVERSATION_UPDATED, function(x, y) --[[ d("CONVERSATION_UPDATED") --]] end)
+    EVENT_MANAGER:RegisterForEvent(name, EVENT_QUEST_COMPLETE_DIALOG, completed)
+    EVENT_MANAGER:RegisterForEvent(name, EVENT_QUEST_OFFERED, offered)
     EVENT_MANAGER:RegisterForEvent(name, EVENT_QUEST_ADDED, quest_added)
     SLASH_COMMANDS["/aaqdump"] = function ()
 	for n, v in pairs(saved.quests) do
