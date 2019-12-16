@@ -1,5 +1,5 @@
 local LD = LibDialog
-local version = '1.9'
+local version = '1.10'
 local chatters = {
    "ZO_ChatterOption1",
    "ZO_ChatterOption2",
@@ -26,10 +26,11 @@ local title = "Automatically Accept Quests (v" .. version .. ")"
 
 local function quest_added(_, n, qname)
     local repeatable =	GetJournalQuestRepeatType(n) ~= QUEST_REPEAT_NOT_REPEATABLE
-    if giver and not saved.quests[giver] and not saved.quests['-' .. giver] and (repeatable or saved.nonrepeatable) then
+    if giver and not giver:lower():find(' writ') and not saved.quests[giver] and not saved.quests['-' .. giver] and (repeatable or saved.nonrepeatable) then
 	curqname = qname
 	ZO_Dialogs_ShowDialog("AAQ", {}, {titleParams = {title}, mainTextParams = {giver}})
     end
+    giver = nil
 end
 
 local function affirmative()
@@ -65,10 +66,11 @@ local function completed()
 end
 
 local function chatbeg(step, n)
-    giver = GetUnitName("interact")
-    if saved.quests[giver] then
+    local pgiver = GetUnitName("interact")
+    if saved.quests[pgiver] then
 	SelectChatterOption(1)
-	return
+    else
+	giver = pgiver
     end
 end
 
@@ -160,11 +162,16 @@ local function init(_, name)
     end
     saved = ZO_SavedVars:NewAccountWide(name, 1, nil, {nonrepeatable = false, quests = {}, repeatable = {}})
     seen = saved.repeatable
+    for n, v in pairs(saved.quests) do
+	if n:lower():find(' writ') then
+	    saved.quests[n] = nil
+	end
+    end
     -- LD:RegisterDialog("AAQ", "AutoIt", "Automatically Accept Quests (v" .. version .. ")", body, affirmative, negatory)
     local confirm = {
 	title = { text = "Automatically Accept Quests"},
 	mainText = {text = "Automatically accept/complete quests from <<1>> from now on?", align = TEXT_ALIGN_CENTER},
-	warning = {text = "Hit ESC/ALT will ask about this quest provider next time", align = TEXT_ALIGN_CENTER},
+	warning = {text = "Hitting ESC/ALT will ask about this quest provider next time", align = TEXT_ALIGN_CENTER},
 	noChoiceCallback = nochoice,
 	buttons = {
 	    [1] = {text = SI_YES, callback = affirmative},
