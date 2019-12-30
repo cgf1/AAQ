@@ -1,5 +1,5 @@
 local LD = LibDialog
-local version = '1.10'
+local version = '1.11'
 local chatters = {
    "ZO_ChatterOption1",
    "ZO_ChatterOption2",
@@ -67,10 +67,11 @@ end
 
 local function chatbeg(step, n)
     local pgiver = GetUnitName("interact")
-    if saved.quests[pgiver] then
-	SelectChatterOption(1)
-    else
+    if not saved.quests[pgiver] then
 	giver = pgiver
+    else
+	SelectChatterOption(1)
+	giver = nil
     end
 end
 
@@ -175,7 +176,7 @@ local function init(_, name)
 	noChoiceCallback = nochoice,
 	buttons = {
 	    [1] = {text = SI_YES, callback = affirmative},
-	    [2] = {text = SI_NO, callback = affirmative},
+	    [2] = {text = SI_NO, callback = negatory},
 	},
     }
     ZO_Dialogs_RegisterCustomDialog("AAQ", confirm)
