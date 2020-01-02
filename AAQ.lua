@@ -1,5 +1,5 @@
 local LD = LibDialog
-local version = '1.11'
+local version = '1.12'
 local chatters = {
    "ZO_ChatterOption1",
    "ZO_ChatterOption2",
@@ -29,8 +29,9 @@ local function quest_added(_, n, qname)
     if giver and not giver:lower():find(' writ') and not saved.quests[giver] and not saved.quests['-' .. giver] and (repeatable or saved.nonrepeatable) then
 	curqname = qname
 	ZO_Dialogs_ShowDialog("AAQ", {}, {titleParams = {title}, mainTextParams = {giver}})
+    else
+	giver = nil
     end
-    giver = nil
 end
 
 local function affirmative()
