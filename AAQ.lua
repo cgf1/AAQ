@@ -1,5 +1,4 @@
-local LD = LibDialog
-local version = '1.12'
+local version = '1.13'
 local chatters = {
    "ZO_ChatterOption1",
    "ZO_ChatterOption2",
@@ -158,10 +157,6 @@ local function init(_, name)
 	return
     end
     EVENT_MANAGER:UnregisterForEvent(name, EVENT_ADD_ON_LOADED)
-    if LD == nil then
-	d("AAQ: Error: Couldn't load LibDialog")
-	return
-    end
     saved = ZO_SavedVars:NewAccountWide(name, 1, nil, {nonrepeatable = false, quests = {}, repeatable = {}})
     seen = saved.repeatable
     for n, v in pairs(saved.quests) do
@@ -169,7 +164,6 @@ local function init(_, name)
 	    saved.quests[n] = nil
 	end
     end
-    -- LD:RegisterDialog("AAQ", "AutoIt", "Automatically Accept Quests (v" .. version .. ")", body, affirmative, negatory)
     local confirm = {
 	title = { text = "Automatically Accept Quests"},
 	mainText = {text = "Automatically accept/complete quests from <<1>> from now on?", align = TEXT_ALIGN_CENTER},
