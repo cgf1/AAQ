@@ -1,4 +1,4 @@
-local version = '1.14'
+local version = '1.15'
 local chatters = {
    "ZO_ChatterOption1",
    "ZO_ChatterOption2",
@@ -33,6 +33,10 @@ local function quest_added(_, n, qname)
     end
 end
 
+local function quest_shared()
+    giver = nil
+end
+
 local function affirmative()
     saved.quests[giver] = curqname
     giver = nil
@@ -65,7 +69,7 @@ local function completed()
     end
 end
 
-local function chatbeg(step, n)
+local function chatbeg(_, n)
     local pgiver = GetUnitName("interact")
     if not saved.quests[pgiver] then
 	giver = pgiver
@@ -73,6 +77,10 @@ local function chatbeg(step, n)
 	SelectChatterOption(1)
 	giver = nil
     end
+end
+
+local function chatend()
+    giver = nil
 end
 
 local function tracked(name)
@@ -178,10 +186,12 @@ local function init(_, name)
 
     EVENT_MANAGER:RegisterForEvent(name, EVENT_CONFIRM_INTERACT, function() --[[ d("CONFIRM_INTERACT") --]] end)
     EVENT_MANAGER:RegisterForEvent(name, EVENT_CHATTER_BEGIN, chatbeg)
+    EVENT_MANAGER:RegisterForEvent(name, EVENT_CHATTER_END, chatend)
     EVENT_MANAGER:RegisterForEvent(name, EVENT_CONVERSATION_UPDATED, function(x, y) --[[ d("CONVERSATION_UPDATED") --]] end)
     EVENT_MANAGER:RegisterForEvent(name, EVENT_QUEST_COMPLETE_DIALOG, completed)
     EVENT_MANAGER:RegisterForEvent(name, EVENT_QUEST_OFFERED, offered)
     EVENT_MANAGER:RegisterForEvent(name, EVENT_QUEST_ADDED, quest_added)
+    EVENT_MANAGER:RegisterForEvent(name, EVENT_QUEST_SHARED, quest_shared)
     SLASH_COMMANDS["/aaqdump"] = function ()
 	for n, v in pairs(saved.quests) do
 	    d(string.format("%s = %s", n, tostring(v)))
