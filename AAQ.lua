@@ -26,10 +26,15 @@ local title = "Automatically Accept Quests (v" .. version .. ")"
 local function quest_added(_, n, qname)
     local repeatable =	GetJournalQuestRepeatType(n) ~= QUEST_REPEAT_NOT_REPEATABLE
     if giver and not giver:lower():find(' writ') and not saved.quests[giver] and not saved.quests['-' .. giver] and (repeatable or saved.nonrepeatable) then
+	curgiver = giver
 	curqname = qname
 	ZO_Dialogs_ShowDialog("AAQ", {}, {titleParams = {title}, mainTextParams = {giver}})
     else
+	if saved.quests[giver] ~= nil then
+	    saved.quests[giver] = qname
+	end
 	giver = nil
+
     end
 end
 
@@ -38,25 +43,29 @@ local function quest_shared()
 end
 
 local function affirmative()
-    saved.quests[giver] = curqname
+    saved.quests[curgiver] = curqname
     giver = nil
+    curgiver = nil
     curqname = nil
 end
 
 local function nochoice()
     giver = nil
+    curgiver = nil
     curqname = nil
 end
 
 local function negatory()
-    saved.quests['-' .. giver] = curqname
+    saved.quests['-' .. curgiver] = curqname
+    curgiver = nil
     giver = nil
     curqname = nil
 end
 
-local function offered()
+local function quest_offered()
     local issuer = GetUnitName("interact")
     if saved.quests[issuer] then
+	giver = issuer
 	AcceptOfferedQuest()
     end
 end
@@ -101,6 +110,7 @@ local function journal_hook(label, button, upInside)
 	if issuer then
 	    AddCustomMenuItem("Reset automatic quest acceptance", function()
 		saved.quests[issuer] = nil
+		saved.quests['-' .. issuer] = nil
 	    end)
 	    ShowMenu(label)
 	end
@@ -178,8 +188,8 @@ local function init(_, name)
 	warning = {text = "Hitting ESC/ALT will ask about this quest provider next time", align = TEXT_ALIGN_CENTER},
 	noChoiceCallback = nochoice,
 	buttons = {
-	    [1] = {text = SI_YES, callback = affirmative},
-	    [2] = {text = SI_NO, callback = negatory},
+	    {text = SI_YES, callback = affirmative},
+	    {text = SI_NO, callback = negatory},
 	},
     }
     ZO_Dialogs_RegisterCustomDialog("AAQ", confirm)
@@ -189,9 +199,12 @@ local function init(_, name)
     EVENT_MANAGER:RegisterForEvent(name, EVENT_CHATTER_END, chatend)
     EVENT_MANAGER:RegisterForEvent(name, EVENT_CONVERSATION_UPDATED, function(x, y) --[[ d("CONVERSATION_UPDATED") --]] end)
     EVENT_MANAGER:RegisterForEvent(name, EVENT_QUEST_COMPLETE_DIALOG, completed)
-    EVENT_MANAGER:RegisterForEvent(name, EVENT_QUEST_OFFERED, offered)
+    EVENT_MANAGER:RegisterForEvent(name, EVENT_QUEST_OFFERED, quest_offered)
     EVENT_MANAGER:RegisterForEvent(name, EVENT_QUEST_ADDED, quest_added)
     EVENT_MANAGER:RegisterForEvent(name, EVENT_QUEST_SHARED, quest_shared)
+    SLASH_COMMANDS["/aaqdel"] = function (s)
+	saved.quests[s] = nil
+    end
     SLASH_COMMANDS["/aaqdump"] = function ()
 	for n, v in pairs(saved.quests) do
 	    d(string.format("%s = %s", n, tostring(v)))
