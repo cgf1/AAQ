@@ -1,10 +1,10 @@
 ## Title: Automatically Accept Quests
 ## Author: Valandil
 ## Description: Adds an extra selection to quest screens which will cause future quest pickups to happen automatically, with just one click.
-## APIVersion: 100031 100032
-## AddonVersion: 117
+## APIVersion: 100032 100033
+## AddonVersion: 119
 ## SavedVariables: AAQ
-## DependsOn: LibAddonMenu-2.0 LibCustomMenu
+## DependsOn: LibAddonMenu-2.0 LibCustomMenu LibQuestData LibUespQuestData LibDebugLogger LibChatMessage
 ## OptionalDependsOn: pChat tom
 
 AAQ.lua

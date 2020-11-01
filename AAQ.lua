@@ -1,4 +1,4 @@
-local version = '1.17'
+local version = '1.19'
 local chatters = {
    "ZO_ChatterOption1",
    "ZO_ChatterOption2",
@@ -15,10 +15,12 @@ local chatters = {
 local myname = 'AAQ'
 local saved = nil
 local SLASH_COMMANDS = SLASH_COMMANDS
+local ZO_Dialogs_ShowDialog = ZO_Dialogs_ShowDialog
 
 local seen
 
 local giver
+local curgiver
 local curqname
 
 local title = "Automatically Accept Quests (v" .. version .. ")"
@@ -34,7 +36,6 @@ local function quest_added(_, n, qname)
 	    saved.quests[giver] = qname
 	end
 	giver = nil
-
     end
 end
 
@@ -150,6 +151,7 @@ local function init_settings()
     }
     local LAM = LibAddonMenu2
     local m = GetAddOnManager()
+    local name, title, author
     for i = 1, m:GetNumAddOns() do
 	name, title, author, description = m:GetAddOnInfo(i)
 	if name == myname then
@@ -182,6 +184,8 @@ local function init(_, name)
 	    saved.quests[n] = nil
 	end
     end
+    saved.rgivers = {}
+
     local confirm = {
 	title = { text = "Automatically Accept Quests"},
 	mainText = {text = "Automatically accept/complete quests from <<1>> from now on?", align = TEXT_ALIGN_CENTER},
