@@ -2,7 +2,7 @@
 ## Author: Valandil
 ## Description: Adds an extra selection to quest screens which will cause future quest pickups to happen automatically, with just one click.
 ## APIVersion: 100032 100033
-## AddonVersion: 119
+## AddonVersion: 118
 ## SavedVariables: AAQ
 ## DependsOn: LibAddonMenu-2.0 LibCustomMenu LibQuestData LibUespQuestData LibDebugLogger LibChatMessage
 ## OptionalDependsOn: pChat tom
