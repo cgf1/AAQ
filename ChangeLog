@@ -1,0 +1,83 @@
+2021-08-29 (v1.19)
+
+- Update for API version 101031 (Waking Flame v7.1.5).
+
+2020-11-01 (v1.18)
+
+- Bump API version for Markarth.
+
+2020-05-26 (v1.17)
+
+- Bump API version for Greymoor.
+
+2020-03-30 (v1.16)
+
+- You can now clear automatic quests by right clicking in your journal quest again.
+
+- Fix stupid problem where 'E" or 'Alt' would not work in the dialog. Sheesh.
+
+2020-02-03 (v1.15)
+
+- Fix confusing message after a quest share.
+
+2020-01-03 (v1.14)
+
+- Add required dependency on LibCustomMenu.
+
+2020-01-03 (v1.13)
+
+- Remove unneeded dependency on LibDialog.
+
+2020-01-01 (v1.12)
+
+- Fix "table index is nil" when trying to accept a quest.
+
+2019-12-30 (v1.11)
+
+- Fix "No" part of quest handling.
+
+2019-12-16 (v1.10)
+
+- Fix issue which caused dialog to sometimes show up when accepting shared quests.
+
+2019-11-11 (v1.9)
+
+- Fix long-standing bug which caused EVERY quest to be automatically accepted. Sheesh. It wasn't supposed to work that way.
+
+- Change the way that you're notified about whether to automatically complete a quest. Display a dialog after quest acceptance. I just couldn't make the previous way work reliably.
+
+2019-09-21 (v1.8)
+
+- Bump API version for Dragonhold.
+
+2019-09-08 (v1.7)
+
+- Try again to fix issue where dialog would sometimes appear inappropriately.
+
+2019-09-01 (v1.6)
+
+- Fix issue where dialog would sometimes appear inappropriately.
+
+2019-08-13 (v1.5)
+
+- Bump api version for Scalebreaker.
+
+- Add functionality for terminating automatic acceptance by right clicking in quest menu.
+
+- Add an "Are you sure?" when clicking to avoid accidental clicks.
+
+2019-05-20 (v1.4)
+
+- Bump api version for Elsewyr.
+
+2019-03-19 (v1.3)
+
+- Bump api version for Wrathstone.
+
+2018-10-22 (v1.2)
+
+- Bump api version for Murkmire.
+
+2018-08-13 (v1.1)
+
+- Bump api version for Wolfhunter.
