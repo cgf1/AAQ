@@ -1,4 +1,4 @@
-local version = '1.22'
+local version = '1.23'
 local chatters = {
    "ZO_ChatterOption1",
    "ZO_ChatterOption2",
