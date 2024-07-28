@@ -1,4 +1,4 @@
-local version = '1.23'
+local version = '1.24'
 local chatters = {
    "ZO_ChatterOption1",
    "ZO_ChatterOption2",
@@ -12,11 +12,16 @@ local chatters = {
    "ZO_ChatterOption10"
 }
 
+local TAG_PREFIX_OFF = TAG_PREFIX_OFF
+local chat
+
 local myname = 'AAQ'
 local saved = nil
+local EndInteraction = EndInteraction
+local GetUnitName = GetUnitName
 local SLASH_COMMANDS = SLASH_COMMANDS
 local ZO_Dialogs_ShowDialog = ZO_Dialogs_ShowDialog
-
+local SCENE_MANAGER = SCENE_MANAGER
 local seen
 
 local giver
@@ -36,6 +41,8 @@ local function quest_added(_, n, qname)
 	    saved.quests[giver] = qname
 	end
 	giver = nil
+	SelectChatterOption(1)
+	EndInteraction(INTERACTION_CONVERSATION)
     end
 end
 
@@ -66,6 +73,9 @@ end
 local function quest_offered()
     local issuer = GetUnitName("interact")
     if saved.quests[issuer] then
+	if not giver then
+	    chat:Printf("automatically accepting %s", saved.quests[issuer])
+	end
 	giver = issuer
 	AcceptOfferedQuest()
     end
@@ -74,8 +84,10 @@ end
 local function completed()
     local issuer = GetUnitName("interact")
     if saved.quests[issuer] then
-	df("automatically completing %s", saved.quests[issuer])
+	chat:Printf("automatically completing %s", saved.quests[issuer])
 	CompleteQuest()
+	EndInteraction(INTERACTION_CONVERSATION)
+	SCENE_MANAGER:ShowBaseScene()
     end
 end
 
@@ -176,6 +188,10 @@ local function init(_, name)
     if name ~= myname then
 	return
     end
+    chat = LibChatMessage("AAQ", "AAQ")
+    -- LibChatMessage:SetTagPrefixMode(TAG_PREFIX_SHORT)
+    -- chat:SetEnabled(true)
+
     EVENT_MANAGER:UnregisterForEvent(name, EVENT_ADD_ON_LOADED)
     saved = ZO_SavedVars:NewAccountWide(name, 1, nil, {nonrepeatable = false, quests = {}, repeatable = {}})
     seen = saved.repeatable

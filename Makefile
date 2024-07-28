@@ -1,7 +1,7 @@
 a=AAQ
 .PHONY: all ctags install clean install-gotham install-norton tags
 modified := $(shell git status -uno | awk '/(new file|modified): .*\.lua/{print $$NF ".ok"}' | sort)
-allfiles := $(shell { echo $a.txt; egrep -v '^[ 	]*(;|\#|$$)' $a.txt; } | sort)
+allfiles := $(shell { echo $a.txt; egrep -v '^[ 	]*(;|#|$$)' $a.txt; } | sort)
 FORCE := false
 
 s:=/home/cgf/.local/share/Steam/steamapps/compatdata/306130/pfx/drive_c/users/steamuser/My?Documents/Elder?Scrolls?Online/live/AddOns/$a
@@ -34,7 +34,7 @@ install-gotham: | all clean
 	@/usr/bin/rsync -aR --delete --force ${allfiles} /smb$e
 	@echo Rsyncing to gotham PTS...
 	@/usr/bin/rsync -aR --delete --force ${allfiles} /smb$f
-	@touch /smb$e//../POC/POC.txt
+	@touch /smb$e//../AAQ/AAQ.txt
 
 .PHONY: install-ednor
 install-ednor: | all clean
@@ -43,7 +43,7 @@ install-ednor: | all clean
 	@/usr/bin/rsync -aR --delete --force ${allfiles} $s
 	@echo Rsyncing to ednor PTS...
 	@/usr/bin/rsync -aR --delete --force ${allfiles} $t
-	@touch $s//../POC/POC.txt
+	@touch $s//../AAQ/AAQ.txt
 
 .PHONY: install-norton
 install-norton: norton-mounted | all clean
@@ -52,7 +52,7 @@ install-norton: norton-mounted | all clean
 	@/usr/bin/rsync -aR --delete --force ${allfiles} /smb1$e
 	@echo Rsyncing to norton PTS...
 	@/usr/bin/rsync -aR --delete --force ${allfiles} /smb1$f
-	@touch /smb1$e//../POC/POC.txt
+	@touch /smb1$e//../AAQ/AAQ.txt
 
 .PHONY: clean
 clean:

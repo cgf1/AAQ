@@ -1,3 +1,11 @@
+2024-07-28 (v1.24)
+
+- Update for API version 101041 (Scions of Ithelia v9.3.0).
+
+- Try harder to end quest dialog when quest has been accepted.
+
+- Actually show chat messages when quest is accepted or completed.
+
 2023-02-03 (v1.23)
 
 - Update for API version 101036 (Firesong v8.2.5).
