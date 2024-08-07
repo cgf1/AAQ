@@ -1,4 +1,4 @@
-local version = '1.24'
+local version = '1.25'
 local chatters = {
    "ZO_ChatterOption1",
    "ZO_ChatterOption2",
@@ -32,11 +32,13 @@ local title = "Automatically Accept Quests (v" .. version .. ")"
 
 local function quest_added(_, n, qname)
     local repeatable =	GetJournalQuestRepeatType(n) ~= QUEST_REPEAT_NOT_REPEATABLE
-    if giver and not giver:lower():find(' writ') and not saved.quests[giver] and not saved.quests['-' .. giver] and (repeatable or saved.nonrepeatable) then
+    if giver:lower():find(' writ') then
+	giver = nil
+    elseif giver and not saved.quests[giver] and not saved.quests['-' .. giver] and (repeatable or saved.nonrepeatable) then
 	curgiver = giver
 	curqname = qname
 	ZO_Dialogs_ShowDialog("AAQ", {}, {titleParams = {title}, mainTextParams = {giver}})
-    else
+    elseif giver then
 	if saved.quests[giver] ~= nil then
 	    saved.quests[giver] = qname
 	end

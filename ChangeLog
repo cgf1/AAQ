@@ -1,3 +1,7 @@
+2024-08-07 (v1.25)
+
+- Fix inadvertent interaction with LazyWritCrafter.
+
 2024-07-28 (v1.24)
 
 - Update for API version 101041 (Scions of Ithelia v9.3.0).
