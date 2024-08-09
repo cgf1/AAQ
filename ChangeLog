@@ -1,3 +1,10 @@
+2024-08-09 (v1.26)
+
+- Add option to disable operations for pledges.
+
+- Try harder to fix strange behavior with repeatable quests that have been
+previously been disabled.
+
 2024-08-07 (v1.25)
 
 - Fix inadvertent interaction with LazyWritCrafter.
