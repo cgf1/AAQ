@@ -22,7 +22,6 @@ local GetUnitName = GetUnitName
 local SLASH_COMMANDS = SLASH_COMMANDS
 local ZO_Dialogs_ShowDialog = ZO_Dialogs_ShowDialog
 local SCENE_MANAGER = SCENE_MANAGER
-local seen
 
 local giver
 local curgiver
@@ -32,19 +31,31 @@ local title = "Automatically Accept Quests (v" .. version .. ")"
 
 local function quest_added(_, n, qname)
     local repeatable =	GetJournalQuestRepeatType(n) ~= QUEST_REPEAT_NOT_REPEATABLE
-    if giver:lower():find(' writ') then
+    if not giver then
+	-- nothing to do
+    elseif (not repeatable and not saved.nonrepeatable) or giver:lower():find(' writ') or (not saved.pledge and qname:sub(1, 7) == 'Pledge:') then
 	giver = nil
-    elseif giver and not saved.quests[giver] and not saved.quests['-' .. giver] and (repeatable or saved.nonrepeatable) then
-	curgiver = giver
-	curqname = qname
-	ZO_Dialogs_ShowDialog("AAQ", {}, {titleParams = {title}, mainTextParams = {giver}})
-    elseif giver then
-	if saved.quests[giver] ~= nil then
+	curgiver = nil
+	curqname = nil
+    else
+	local ngiver = '-' .. giver
+	if saved.quests[ngiver] then
+	    giver = nil
+	    curgiver = nil
+	    curqname = nil
+	    saved.quests[ngiver] = qname
+	elseif saved.quests[giver] then
+	    SelectChatterOption(1)
+	    EndInteraction(INTERACTION_CONVERSATION)
 	    saved.quests[giver] = qname
+	    curgiver = nil
+	    curqname = nil
+	else
+	    curgiver = giver
+	    curqname = qname
+	    ZO_Dialogs_ShowDialog("AAQ", {}, {titleParams = {title}, mainTextParams = {giver}})
 	end
 	giver = nil
-	SelectChatterOption(1)
-	EndInteraction(INTERACTION_CONVERSATION)
     end
 end
 
@@ -54,13 +65,11 @@ end
 
 local function affirmative()
     saved.quests[curgiver] = curqname
-    giver = nil
     curgiver = nil
     curqname = nil
 end
 
 local function nochoice()
-    giver = nil
     curgiver = nil
     curqname = nil
 end
@@ -68,7 +77,6 @@ end
 local function negatory()
     saved.quests['-' .. curgiver] = curqname
     curgiver = nil
-    giver = nil
     curqname = nil
 end
 
@@ -161,6 +169,18 @@ local function init_settings()
 		end
 	    end,
 	    default = false
+	},
+	{
+	    type = "checkbox",
+	    name = "Apply to pledge quests",
+	    tooltip = "Ignore pledge quests if unchecked",
+	    getFunc = function()
+		return saved.pledge
+	    end,
+	    setFunc = function(x)
+		saved.pledge = x
+	    end,
+	    default = true
 	}
     }
     local LAM = LibAddonMenu2
@@ -196,9 +216,11 @@ local function init(_, name)
 
     EVENT_MANAGER:UnregisterForEvent(name, EVENT_ADD_ON_LOADED)
     saved = ZO_SavedVars:NewAccountWide(name, 1, nil, {nonrepeatable = false, quests = {}, repeatable = {}})
-    seen = saved.repeatable
+    if saved.pledge == nil then
+	saved.pledge = true
+    end
     for n, v in pairs(saved.quests) do
-	if n:lower():find(' writ') then
+	if n:lower():find(' writ') or (not saved.pledge and n:lower():find(' pledge')) then
 	    saved.quests[n] = nil
 	end
     end
@@ -224,12 +246,14 @@ local function init(_, name)
     EVENT_MANAGER:RegisterForEvent(name, EVENT_QUEST_OFFERED, quest_offered)
     EVENT_MANAGER:RegisterForEvent(name, EVENT_QUEST_ADDED, quest_added)
     EVENT_MANAGER:RegisterForEvent(name, EVENT_QUEST_SHARED, quest_shared)
-    SLASH_COMMANDS["/aaqdel"] = function (s)
-	saved.quests[s] = nil
+    SLASH_COMMANDS["/aaqreset"] = function (s)
+	for n, _ in pairs(saved.quests) do
+	    saved.quests[n] = nil
+	end
     end
     SLASH_COMMANDS["/aaqdump"] = function ()
 	for n, v in pairs(saved.quests) do
-	    d(string.format("%s = %s", n, tostring(v)))
+	    chat:Printf("%s = %s", n, tostring(v))
 	end
     end
     orig_ZO_QuestJournalNavigationEntry_OnMouseUp = ZO_QuestJournalNavigationEntry_OnMouseUp
