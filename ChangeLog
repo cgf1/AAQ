@@ -2,8 +2,7 @@
 
 - Add option to disable operations for pledges.
 
-- Try harder to fix strange behavior with repeatable quests that have been
-previously been disabled.
+- Try harder to fix strange behavior with repeatable quests that have previously been disabled.
 
 2024-08-07 (v1.25)
 
@@ -49,7 +48,7 @@ previously been disabled.
 
 - You can now clear automatic quests by right clicking in your journal quest again.
 
-- Fix stupid problem where 'E" or 'Alt' would not work in the dialog. Sheesh.
+- Fix stupid problem where 'E" or 'Alt' would not work in the dialog.  Sheesh.
 
 2020-02-03 (v1.15)
 
@@ -77,9 +76,11 @@ previously been disabled.
 
 2019-11-11 (v1.9)
 
-- Fix long-standing bug which caused EVERY quest to be automatically accepted. Sheesh. It wasn't supposed to work that way.
+- Fix long-standing bug which caused EVERY quest to be automatically accepted.  Sheesh.  It wasn't
+supposed to work that way.
 
-- Change the way that you're notified about whether to automatically complete a quest. Display a dialog after quest acceptance. I just couldn't make the previous way work reliably.
+- Change the way that you're notified about whether to automatically complete a quest.  Display a
+dialog after quest acceptance.  I just couldn't make the previous way work reliably.
 
 2019-09-21 (v1.8)
 
