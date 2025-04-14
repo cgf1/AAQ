@@ -26,14 +26,19 @@ local SCENE_MANAGER = SCENE_MANAGER
 local giver
 local curgiver
 local curqname
+local pretend
 
 local title = "Automatically Accept Quests (v" .. version .. ")"
+
+local function ispledge(s)
+    return s:sub(1, 7) == 'Pledge:'
+end
 
 local function quest_added(_, n, qname)
     local repeatable =	GetJournalQuestRepeatType(n) ~= QUEST_REPEAT_NOT_REPEATABLE
     if not giver then
 	-- nothing to do
-    elseif (not repeatable and not saved.nonrepeatable) or giver:lower():find(' writ') or (not saved.pledge and qname:sub(1, 7) == 'Pledge:') then
+    elseif (not repeatable and not saved.nonrepeatable) or giver:lower():find(' writ') or (not saved.pledge and ispledge(qname)) then
 	giver = nil
 	curgiver = nil
 	curqname = nil
@@ -47,6 +52,7 @@ local function quest_added(_, n, qname)
 	elseif saved.quests[giver] then
 	    SelectChatterOption(1)
 	    EndInteraction(INTERACTION_CONVERSATION)
+	    chat:Printf("automatically accepting %s", qname)
 	    saved.quests[giver] = qname
 	    curgiver = nil
 	    curqname = nil
@@ -83,30 +89,43 @@ end
 local function quest_offered()
     local issuer = GetUnitName("interact")
     if saved.quests[issuer] then
-	if not giver then
-	    chat:Printf("automatically accepting %s", saved.quests[issuer])
-	end
 	giver = issuer
 	AcceptOfferedQuest()
     end
 end
 
-local function completed()
+local function complete()
     local issuer = GetUnitName("interact")
-    if saved.quests[issuer] then
-	chat:Printf("automatically completing %s", saved.quests[issuer])
+    local qname = saved.quests[issuer]
+    if qname then
+	chat:Printf("automatically completing %s from %s", qname, issuer)
 	CompleteQuest()
 	EndInteraction(INTERACTION_CONVERSATION)
 	SCENE_MANAGER:ShowBaseScene()
     end
 end
 
+local function option1()
+    SelectChatterOption(1)
+end
+
+local function option2()
+    option1()
+    zo_callLater(option1, 200)
+end
+
 local function chatbeg(_, n)
     local pgiver = GetUnitName("interact")
-    if not saved.quests[pgiver] then
+    local qname = saved.quests[pgiver]
+    if not qname then
 	giver = pgiver
     else
-	SelectChatterOption(1)
+	option1()
+	if not ispledge(qname) then
+	    zo_callLater(option1, 200)
+	else
+	    zo_callLater(option2, 200)
+	end
 	giver = nil
     end
 end
@@ -242,10 +261,16 @@ local function init(_, name)
     EVENT_MANAGER:RegisterForEvent(name, EVENT_CHATTER_BEGIN, chatbeg)
     EVENT_MANAGER:RegisterForEvent(name, EVENT_CHATTER_END, chatend)
     EVENT_MANAGER:RegisterForEvent(name, EVENT_CONVERSATION_UPDATED, function(x, y) --[[ d("CONVERSATION_UPDATED") --]] end)
-    EVENT_MANAGER:RegisterForEvent(name, EVENT_QUEST_COMPLETE_DIALOG, completed)
+    EVENT_MANAGER:RegisterForEvent(name, EVENT_QUEST_COMPLETE_DIALOG, complete)
     EVENT_MANAGER:RegisterForEvent(name, EVENT_QUEST_OFFERED, quest_offered)
     EVENT_MANAGER:RegisterForEvent(name, EVENT_QUEST_ADDED, quest_added)
     EVENT_MANAGER:RegisterForEvent(name, EVENT_QUEST_SHARED, quest_shared)
+    SLASH_COMMANDS["/aaqpretend"] = function ()
+	pretend = true
+    end
+    SLASH_COMMANDS["/aaqnopretend"] = function ()
+	pretend = false
+    end
     SLASH_COMMANDS["/aaqreset"] = function (s)
 	for n, _ in pairs(saved.quests) do
 	    saved.quests[n] = nil
